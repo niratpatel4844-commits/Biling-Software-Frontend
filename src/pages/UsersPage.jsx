@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { usersAPI, rolesAPI, companiesAPI, branchesAPI } from '../services/api';
+import { usersAPI, rolesAPI, companiesAPI, branchesAPI, franchisesAPI, warehousesAPI } from '../services/api';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
 import { Edit, Trash2, RotateCcw, LogOut, MoreHorizontal, Eye, EyeOff } from 'lucide-react';
@@ -13,7 +13,9 @@ export default function UsersPage() {
   const [roles, setRoles] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [branches, setBranches] = useState([]);
-  const [form, setForm] = useState({ full_name: '', email: '', mobile: '', password: '', confirm_password: '', role_id: '', company_id: '', branch_id: '', is_active: true });
+  const [franchises, setFranchises] = useState([]);
+  const [warehouses, setWarehouses] = useState([]);
+  const [form, setForm] = useState({ full_name: '', email: '', mobile: '', password: '', confirm_password: '', role_id: '', company_id: '', branch_id: '', franchise_id: '', warehouse_id: '', is_active: true });
   const [searchTimer, setSearchTimer] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [resetModal, setResetModal] = useState({ show: false, userId: null, password: '', confirm_password: '' });
@@ -33,6 +35,8 @@ export default function UsersPage() {
     rolesAPI.list().then(r => setRoles(r.data)).catch(() => {}); 
     companiesAPI.list({ page_size: 100 }).then(r => setCompanies(r.data.items || r.data || [])).catch(() => {});
     branchesAPI.list({ page_size: 100 }).then(r => setBranches(r.data.items || r.data || [])).catch(() => {});
+    franchisesAPI.list({ page_size: 100 }).then(r => setFranchises(r.data.items || r.data || [])).catch(() => {});
+    warehousesAPI.list({ page_size: 100 }).then(r => setWarehouses(r.data.items || r.data || [])).catch(() => {});
   }, [fetchUsers]);
 
   const handleSearch = (val) => {
@@ -42,14 +46,14 @@ export default function UsersPage() {
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ full_name: '', email: '', mobile: '', password: '', confirm_password: '', role_id: '', company_id: '', branch_id: '', is_active: true });
+    setForm({ full_name: '', email: '', mobile: '', password: '', confirm_password: '', role_id: '', company_id: '', branch_id: '', franchise_id: '', warehouse_id: '', is_active: true });
     setShowPassword(false);
     setShowModal(true);
   };
 
   const openEdit = (user) => {
     setEditing(user);
-    setForm({ full_name: user.full_name, email: user.email, mobile: user.mobile || '', role_id: user.role_id || '', company_id: user.company_id || '', branch_id: user.branch_id || '', is_active: user.is_active });
+    setForm({ full_name: user.full_name, email: user.email, mobile: user.mobile || '', role_id: user.role_id || '', company_id: user.company_id || '', branch_id: user.branch_id || '', franchise_id: user.franchise_id || '', warehouse_id: user.warehouse_id || '', is_active: user.is_active });
     setShowModal(true);
   };
 
@@ -194,20 +198,49 @@ export default function UsersPage() {
               {roles.map(r => <option key={r.id} value={r.id}>{r.display_name}</option>)}
             </select>
           </div>
-          <div className="form-group">
-            <label className="form-label">Company</label>
-            <select className="form-select" value={form.company_id || ''} onChange={(e) => setForm({...form, company_id: e.target.value ? parseInt(e.target.value) : '', branch_id: ''})}>
-              <option value="">Select Company</option>
-              {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-          </div>
-          <div className="form-group">
-            <label className="form-label">Branch</label>
-            <select className="form-select" value={form.branch_id || ''} onChange={(e) => setForm({...form, branch_id: e.target.value ? parseInt(e.target.value) : ''})} disabled={!form.company_id}>
-              <option value="">Select Branch</option>
-              {branches.filter(b => b.company_id === form.company_id).map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-            </select>
-          </div>
+          {(() => {
+            const roleConfig = roles.find(r => r.id === form.role_id) || {};
+            return (
+              <>
+                {roleConfig.allow_company !== false && (
+                  <div className="form-group">
+                    <label className="form-label">Company</label>
+                    <select className="form-select" value={form.company_id || ''} onChange={(e) => setForm({...form, company_id: e.target.value ? parseInt(e.target.value) : '', branch_id: '', franchise_id: '', warehouse_id: ''})}>
+                      <option value="">Select Company</option>
+                      {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                  </div>
+                )}
+                {roleConfig.allow_branch && (
+                  <div className="form-group">
+                    <label className="form-label">Branch</label>
+                    <select className="form-select" value={form.branch_id || ''} onChange={(e) => setForm({...form, branch_id: e.target.value ? parseInt(e.target.value) : '', franchise_id: '', warehouse_id: ''})} disabled={!form.company_id}>
+                      <option value="">Select Branch</option>
+                      {branches.filter(b => b.company_id === form.company_id).map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                    </select>
+                  </div>
+                )}
+                {roleConfig.allow_franchise && (
+                  <div className="form-group">
+                    <label className="form-label">Franchise</label>
+                    <select className="form-select" value={form.franchise_id || ''} onChange={(e) => setForm({...form, franchise_id: e.target.value ? parseInt(e.target.value) : '', branch_id: '', warehouse_id: ''})} disabled={!form.company_id}>
+                      <option value="">Select Franchise</option>
+                      {franchises.filter(f => f.company_id === form.company_id).map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+                    </select>
+                  </div>
+                )}
+                {roleConfig.allow_warehouse && (
+                  <div className="form-group">
+                    <label className="form-label">Warehouse</label>
+                    <select className="form-select" value={form.warehouse_id || ''} onChange={(e) => setForm({...form, warehouse_id: e.target.value ? parseInt(e.target.value) : '', branch_id: '', franchise_id: ''})} disabled={!form.company_id}>
+                      <option value="">Select Warehouse</option>
+                      {warehouses.filter(w => w.company_id === form.company_id).map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+                    </select>
+                  </div>
+                )}
+              </>
+            );
+          })()}
           <div className="form-group">
             <label className="form-label">Status</label>
             <select className="form-select" value={form.is_active ? 'true' : 'false'} onChange={(e) => setForm({...form, is_active: e.target.value === 'true'})}>

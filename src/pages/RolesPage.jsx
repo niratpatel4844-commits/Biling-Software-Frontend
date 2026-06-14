@@ -16,7 +16,7 @@ export default function RolesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState(null);
   const [selectedPerms, setSelectedPerms] = useState([]);
-  const [form, setForm] = useState({ name: '', display_name: '', description: '' });
+  const [form, setForm] = useState({ name: '', display_name: '', description: '', allow_company: true, allow_branch: false, allow_franchise: false, allow_warehouse: false });
 
   useEffect(() => {
     Promise.all([rolesAPI.list(), rolesAPI.listPermissions()])
@@ -92,12 +92,12 @@ export default function RolesPage() {
         data={roles.filter(r => r.display_name.toLowerCase().includes(searchQuery.toLowerCase()) || r.name.toLowerCase().includes(searchQuery.toLowerCase()))} 
         total={roles.filter(r => r.display_name.toLowerCase().includes(searchQuery.toLowerCase()) || r.name.toLowerCase().includes(searchQuery.toLowerCase())).length} 
         page={1} pageSize={100} totalPages={1}
-        loading={loading} onSearch={(val) => setSearchQuery(val)} onAdd={() => { setEditing(null); setForm({ name: '', display_name: '', description: '' }); setShowModal(true); }}
+        loading={loading} onSearch={(val) => setSearchQuery(val)} onAdd={() => { setEditing(null); setForm({ name: '', display_name: '', description: '', allow_company: true, allow_branch: false, allow_franchise: false, allow_warehouse: false }); setShowModal(true); }}
         addLabel="Add Role"
         actions={(row) => (
           <div style={{ display: 'flex', gap: 4 }}>
             <button className="btn btn-secondary btn-sm btn-icon" onClick={() => openPermissions(row)} title="Permissions"><Shield size={14} /></button>
-            <button className="btn btn-secondary btn-sm btn-icon" onClick={() => { setEditing(row); setForm({ name: row.name, display_name: row.display_name, description: row.description || '' }); setShowModal(true); }}><Edit size={14} /></button>
+            <button className="btn btn-secondary btn-sm btn-icon" onClick={() => { setEditing(row); setForm({ name: row.name, display_name: row.display_name, description: row.description || '', allow_company: row.allow_company ?? true, allow_branch: row.allow_branch ?? false, allow_franchise: row.allow_franchise ?? false, allow_warehouse: row.allow_warehouse ?? false }); setShowModal(true); }}><Edit size={14} /></button>
             {!row.is_system && <button className="btn btn-secondary btn-sm btn-icon" onClick={() => handleDelete(row.id)} style={{ color: 'var(--danger)' }}><Trash2 size={14} /></button>}
           </div>
         )}
@@ -108,6 +108,26 @@ export default function RolesPage() {
         <div className="form-group"><label className="form-label">Role Name (slug)</label><input className="form-input" value={form.name} onChange={(e) => setForm({...form, name: e.target.value})} placeholder="e.g. regional_manager" /></div>
         <div className="form-group"><label className="form-label">Display Name</label><input className="form-input" value={form.display_name} onChange={(e) => setForm({...form, display_name: e.target.value})} /></div>
         <div className="form-group"><label className="form-label">Description</label><input className="form-input" value={form.description} onChange={(e) => setForm({...form, description: e.target.value})} /></div>
+        
+        <div style={{ marginTop: 24, marginBottom: 8, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', color: 'var(--accent)' }}>Assignment Configuration</div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, padding: 16, background: 'var(--bg-input)', borderRadius: 8, border: '1px solid var(--border)' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 14 }}>
+            <input type="checkbox" checked={form.allow_company} onChange={(e) => setForm({...form, allow_company: e.target.checked})} style={{ accentColor: 'var(--accent)' }} />
+            Company Assignment
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 14 }}>
+            <input type="checkbox" checked={form.allow_branch} onChange={(e) => setForm({...form, allow_branch: e.target.checked})} style={{ accentColor: 'var(--accent)' }} />
+            Branch Assignment
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 14 }}>
+            <input type="checkbox" checked={form.allow_franchise} onChange={(e) => setForm({...form, allow_franchise: e.target.checked})} style={{ accentColor: 'var(--accent)' }} />
+            Franchise Assignment
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 14 }}>
+            <input type="checkbox" checked={form.allow_warehouse} onChange={(e) => setForm({...form, allow_warehouse: e.target.checked})} style={{ accentColor: 'var(--accent)' }} />
+            Warehouse Assignment
+          </label>
+        </div>
       </Modal>
 
       <Modal isOpen={showPermModal} onClose={() => setShowPermModal(false)} title={`Permissions: ${selectedRole?.display_name}`}

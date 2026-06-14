@@ -29,12 +29,12 @@ export default function CrudPage({ title, subtitle, breadcrumb, apiService, colu
           const s = search.toLowerCase();
           items = items.filter(r => Object.values(r).some(v => String(v).toLowerCase().includes(s)));
         }
-        setData({ 
-          items: items.slice((page - 1) * 20, page * 20), 
-          total: items.length, 
-          page, 
-          page_size: 20, 
-          total_pages: Math.ceil(items.length / 20) || 1 
+        setData({
+          items: items.slice((page - 1) * 20, page * 20),
+          total: items.length,
+          page,
+          page_size: 20,
+          total_pages: Math.ceil(items.length / 20) || 1
         });
       } else {
         setData(res.data);
@@ -64,11 +64,11 @@ export default function CrudPage({ title, subtitle, breadcrumb, apiService, colu
     try {
       const payload = { ...form };
       Object.keys(payload).forEach(k => { if (payload[k] === '') payload[k] = null; });
-      
+
       if (editing) { await apiService.update(editing.id, payload); toast.success('Updated successfully'); }
       else { await apiService.create(payload); toast.success('Created successfully'); }
       setShowModal(false); fetchData(data.page);
-    } catch (err) { 
+    } catch (err) {
       const detail = err.response?.data?.detail;
       if (Array.isArray(detail)) {
         toast.error(detail[0].msg);
@@ -83,10 +83,10 @@ export default function CrudPage({ title, subtitle, breadcrumb, apiService, colu
   };
 
   const confirmDelete = async () => {
-    try { 
-      await apiService.delete(deleteModal.id); 
-      toast.success('Deleted successfully'); 
-      fetchData(data.page); 
+    try {
+      await apiService.delete(deleteModal.id);
+      toast.success('Deleted successfully');
+      fetchData(data.page);
       setDeleteModal({ show: false, id: null });
     }
     catch { toast.error('Failed to delete'); }
@@ -116,22 +116,60 @@ export default function CrudPage({ title, subtitle, breadcrumb, apiService, colu
 
       <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editing ? `Edit ${title.replace(/s$/, '')}` : `Add ${title.replace(/s$/, '')}`}
         footer={<><button className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button><button className="btn btn-primary" onClick={handleSave}>Save</button></>}>
-        <div className="grid-2">
-          {formFields.map((ff) => (
-            <div className="form-group" key={ff.key}>
-              <label className="form-label">{ff.label}</label>
-              {ff.type === 'select' ? (
-                <select className="form-select" value={form[ff.key] || ''} onChange={(e) => setForm({...form, [ff.key]: e.target.value})}>
-                  <option value="">Select...</option>
-                  {ff.options?.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                </select>
-              ) : (
-                <input className="form-input" type={ff.type || 'text'} value={form[ff.key] || ''}
-                  onChange={(e) => setForm({...form, [ff.key]: ff.type === 'number' ? (e.target.value ? Number(e.target.value) : '') : e.target.value})}
-                  placeholder={ff.placeholder || ''} />
-              )}
-            </div>
-          ))}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxHeight: '70vh', overflowY: 'auto', paddingRight: '8px' }}>
+          {(() => {
+            const sections = {};
+            const noSection = [];
+            formFields.forEach(ff => {
+              if (ff.hide && ff.hide(form)) return;
+              if (ff.section) {
+                if (!sections[ff.section]) sections[ff.section] = [];
+                sections[ff.section].push(ff);
+              } else {
+                noSection.push(ff);
+              }
+            });
+
+            const renderField = (ff) => (
+              <div className="form-group" key={ff.key}>
+                <label className="form-label">{ff.label}</label>
+                {ff.type === 'select' ? (
+                  <select className="form-select" value={form[ff.key] !== undefined && form[ff.key] !== null ? String(form[ff.key]) : ''} onChange={(e) => {
+                    let val = e.target.value;
+                    if (val === 'true') val = true;
+                    else if (val === 'false') val = false;
+                    else if (ff.valueType === 'number' && val !== '') val = Number(val);
+                    setForm({ ...form, [ff.key]: val });
+                  }}>
+                    <option value="">Select...</option>
+                    {(typeof ff.options === 'function' ? ff.options(form) : ff.options)?.map(o => <option key={String(o.value)} value={String(o.value)}>{o.label}</option>)}
+                  </select>
+                ) : (
+                  <input className="form-input" type={ff.type || 'text'} value={form[ff.key] || ''}
+                    onChange={(e) => setForm({ ...form, [ff.key]: ff.type === 'number' ? (e.target.value ? Number(e.target.value) : '') : e.target.value })}
+                    placeholder={ff.placeholder || ''} />
+                )}
+              </div>
+            );
+
+            return (
+              <>
+                {noSection.length > 0 && (
+                  <div className="grid-2">
+                    {noSection.map(ff => renderField(ff))}
+                  </div>
+                )}
+                {Object.entries(sections).map(([sectionName, fields]) => (
+                  <div key={sectionName}>
+                    <h4 style={{ margin: '0 0 16px 0', borderBottom: '1px solid var(--border)', paddingBottom: '8px', color: 'var(--primary)' }}>{sectionName}</h4>
+                    <div className="grid-2">
+                      {fields.map(ff => renderField(ff))}
+                    </div>
+                  </div>
+                ))}
+              </>
+            );
+          })()}
         </div>
       </Modal>
 

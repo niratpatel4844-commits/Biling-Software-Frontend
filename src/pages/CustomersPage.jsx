@@ -2,9 +2,10 @@ import CrudPage from './CrudPage';
 import { customersAPI } from '../services/api';
 
 const columns = [
-  { key: 'id', label: 'ID' },
+  { key: 'customer_code', label: 'Code' },
   { key: 'name', label: 'Customer', render: (val) => <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{val}</span> },
-  { key: 'email', label: 'Email' },
+  { key: 'contact_person', label: 'Contact Person' },
+  { key: 'gst_number', label: 'GST Number' },
   { key: 'mobile', label: 'Mobile' },
   { key: 'city', label: 'City' },
   { key: 'outstanding_amount', label: 'Outstanding', render: (val) => val ? `₹${Number(val).toLocaleString()}` : '₹0' },
@@ -12,14 +13,21 @@ const columns = [
 ];
 
 const formFields = [
+  { key: 'customer_code', label: 'Customer Code (Auto)' },
   { key: 'name', label: 'Customer Name' },
-  { key: 'email', label: 'Email', type: 'email' },
+  { key: 'contact_person', label: 'Contact Person' },
   { key: 'mobile', label: 'Mobile' },
+  { key: 'email', label: 'Email', type: 'email' },
+  { key: 'gst_number', label: 'GST Number' },
+  { key: 'pan_number', label: 'PAN Number' },
   { key: 'address', label: 'Address' },
   { key: 'city', label: 'City' },
   { key: 'state', label: 'State' },
-  { key: 'gst_number', label: 'GST Number' },
+  { key: 'country', label: 'Country', default: 'India' },
+  { key: 'pincode', label: 'Pincode' },
   { key: 'credit_limit', label: 'Credit Limit', type: 'number', default: 0 },
+  { key: 'notes', label: 'Notes' },
+  { key: 'is_active', label: 'Status', type: 'checkbox', default: true },
 ];
 
 export default function CustomersPage() {

@@ -59,9 +59,9 @@ export const dashboardAPI = {
 
 // CRUD factory
 const createCRUD = (resource) => ({
-  list: (params = {}) => api.get(`/${resource}`, { params }),
+  list: (params = {}) => api.get(`/${resource}/`, { params }),
   get: (id) => api.get(`/${resource}/${id}`),
-  create: (data) => api.post(`/${resource}`, data),
+  create: (data) => api.post(`/${resource}/`, data),
   update: (id, data) => api.put(`/${resource}/${id}`, data),
   delete: (id) => api.delete(`/${resource}/${id}`),
 });
@@ -74,8 +74,11 @@ export const franchisesAPI = { ...createCRUD('franchises'), approve: (id) => api
 export const warehousesAPI = createCRUD('warehouses');
 export const productsAPI = createCRUD('products');
 export const categoriesAPI = createCRUD('categories');
+export const brandsAPI = createCRUD('brands');
+export const unitsAPI = createCRUD('units');
+export const variantsAPI = createCRUD('variants');
 export const customersAPI = createCRUD('customers');
 export const vendorsAPI = createCRUD('vendors');
-export const auditLogsAPI = { list: (params = {}) => api.get('/audit-logs', { params }) };
-
+export const auditLogsAPI = { list: (params = {}) => api.get('/audit-logs/', { params }) };
+export const inventoryAPI = createCRUD('inventory');
 export default api;

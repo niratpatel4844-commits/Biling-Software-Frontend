@@ -12,9 +12,15 @@ const pageConfig = {
   settings: { icon: SettingsIcon, title: 'Settings', subtitle: 'System configuration and preferences', breadcrumb: 'Home / System / Settings', features: ['Company Settings', 'Billing Settings', 'Invoice Settings', 'GST Settings', 'Email Settings', 'Theme Settings'] },
 };
 
-export default function PlaceholderPage({ pageKey }) {
-  const config = pageConfig[pageKey] || { icon: BarChart3, title: pageKey, subtitle: '', features: [] };
-  const Icon = config.icon;
+export default function PlaceholderPage({ pageKey, title, subtitle }) {
+  const config = pageConfig[pageKey] || { 
+    icon: BarChart3, 
+    title: title || pageKey.replace(/_/g, ' '), 
+    subtitle: subtitle || 'This module will be implemented soon.', 
+    breadcrumb: `Home / ${title || pageKey}`,
+    features: [] 
+  };
+  const Icon = config.icon || BarChart3;
 
   return (
     <div className="animate-in">
