@@ -23,8 +23,20 @@ import InventoryPage from './pages/InventoryPage';
 import PlaceholderPage from './pages/PlaceholderPage';
 import SalesListPage from './pages/SalesListPage';
 import AddSalePage from './pages/AddSalePage';
-import PurchasesListPage from './pages/PurchasesListPage';
+import ViewSalePage from './pages/ViewSalePage';
+import SalesReturnsListPage from './pages/SalesReturnsListPage';
+import QuotationsListPage from './pages/QuotationsListPage';
+import SalesOrdersListPage from './pages/SalesOrdersListPage';
+import CustomerPaymentsPage from './pages/CustomerPaymentsPage';
+import PurchaseRequestsPage from './pages/PurchaseRequestsPage';
+import PurchaseOrdersPage from './pages/PurchaseOrdersPage';
+import GoodsReceiptsPage from './pages/GoodsReceiptsPage';
+import PurchaseBillsPage from './pages/PurchaseBillsPage';
+import VendorPaymentsPage from './pages/VendorPaymentsPage';
+import VendorReturnsPage from './pages/VendorReturnsPage';
 import AddPurchasePage from './pages/AddPurchasePage';
+import ViewPurchasePage from './pages/ViewPurchasePage';
+import StockMovementsPage from './pages/StockMovementsPage';
 import './index.css';
 
 function ProtectedRoute({ children }) {
@@ -59,26 +71,29 @@ function AppRoutes() {
         <Route path="inventory" element={<InventoryPage />} />
         
         {/* Sales Module */}
-        <Route path="sales/quotations" element={<PlaceholderPage pageKey="sales_quotations" title="Quotations" />} />
-        <Route path="sales/orders" element={<PlaceholderPage pageKey="sales_orders" title="Sales Orders" />} />
+        <Route path="sales/quotations" element={<QuotationsListPage />} />
+        <Route path="sales/orders" element={<SalesOrdersListPage />} />
         <Route path="sales/invoices" element={<SalesListPage />} />
         <Route path="sales/create" element={<AddSalePage />} />
-        <Route path="sales/returns" element={<PlaceholderPage pageKey="sales_returns" title="Sales Returns" />} />
+        <Route path="sales/view/:id" element={<ViewSalePage />} />
+        <Route path="sales/payments" element={<CustomerPaymentsPage />} />
+        <Route path="sales/returns" element={<SalesReturnsListPage />} />
         <Route path="sales/credit-notes" element={<PlaceholderPage pageKey="sales_credit_notes" title="Credit Notes" />} />
 
         {/* Purchases Module */}
-        <Route path="purchases/requests" element={<PlaceholderPage pageKey="purchases_requests" title="Purchase Requests" />} />
-        <Route path="purchases/orders" element={<PlaceholderPage pageKey="purchases_orders" title="Purchase Orders" />} />
-        <Route path="purchases/receipts" element={<PlaceholderPage pageKey="purchases_receipts" title="Goods Receipt" />} />
-        <Route path="purchases/bills" element={<PurchasesListPage />} />
+        <Route path="purchases/requests" element={<PurchaseRequestsPage />} />
+        <Route path="purchases/orders" element={<PurchaseOrdersPage />} />
+        <Route path="purchases/receipts" element={<GoodsReceiptsPage />} />
+        <Route path="purchases/bills" element={<PurchaseBillsPage />} />
         <Route path="purchases/create" element={<AddPurchasePage />} />
-        <Route path="purchases/returns" element={<PlaceholderPage pageKey="purchases_returns" title="Vendor Returns" />} />
-        <Route path="purchases/payments" element={<PlaceholderPage pageKey="purchases_payments" title="Vendor Payments" />} />
+        <Route path="purchases/view/:id" element={<ViewPurchasePage />} />
+        <Route path="purchases/returns" element={<VendorReturnsPage />} />
+        <Route path="purchases/payments" element={<VendorPaymentsPage />} />
 
         {/* Stock Movements */}
-        <Route path="inventory/transfer" element={<PlaceholderPage pageKey="inventory_transfer" title="Stock Transfer" />} />
-        <Route path="inventory/adjustment" element={<PlaceholderPage pageKey="inventory_adjustment" title="Stock Adjustment" />} />
-        <Route path="inventory/damaged" element={<PlaceholderPage pageKey="inventory_damaged" title="Damaged Stock" />} />
+        <Route path="inventory/transfer" element={<StockMovementsPage movementType="transfer" title="Stock Transfers" description="Move stock between warehouses" />} />
+        <Route path="inventory/adjustment" element={<StockMovementsPage movementType="adjustment" title="Stock Adjustments" description="Manually add or remove stock" />} />
+        <Route path="inventory/damaged" element={<StockMovementsPage movementType="damage" title="Damaged Stock" description="Report and manage damaged inventory" />} />
         <Route path="inventory/reserved" element={<PlaceholderPage pageKey="inventory_reserved" title="Reserved Stock" />} />
         <Route path="inventory/history" element={<PlaceholderPage pageKey="inventory_history" title="Stock History" />} />
 

@@ -80,5 +80,33 @@ export const variantsAPI = createCRUD('variants');
 export const customersAPI = createCRUD('customers');
 export const vendorsAPI = createCRUD('vendors');
 export const auditLogsAPI = { list: (params = {}) => api.get('/audit-logs/', { params }) };
-export const inventoryAPI = createCRUD('inventory');
+export const inventoryAPI = {
+  ...createCRUD('inventory'),
+  list: (params) => api.get('/inventory/', { params }),
+  addOpeningStock: (data) => api.post('/inventory/opening-stock', data),
+  listMovements: (params) => api.get('/inventory/movements', { params }),
+  createMovement: (data) => api.post('/inventory/movements', data),
+};
+
+export const salesAPI = {
+  get: (id) => api.get(`/sales/details/${id}`),
+  create: (data) => api.post('/sales/', data),
+  list: (document_type) => api.get(`/sales/${document_type}`),
+  convert: (sale_id, target_type) => api.post(`/sales/${sale_id}/convert/${target_type}`),
+  approveReturn: (return_id) => api.post(`/sales/returns/${return_id}/approve`),
+  receivePayment: (data) => api.post('/sales/payments', data),
+  listPayments: () => api.get('/sales/payments/list'),
+  createChallan: (data) => api.post('/sales/challans', data),
+  listChallans: () => api.get('/sales/challans/list'),
+};
+
+export const purchasesAPI = {
+  get: (id) => api.get(`/purchases/details/${id}`),
+  create: (data) => api.post('/purchases/', data),
+  list: (document_type) => api.get(`/purchases/${document_type}`),
+  convert: (purchase_id, target_type) => api.post(`/purchases/${purchase_id}/convert/${target_type}`),
+  makePayment: (data) => api.post('/purchases/payments', data),
+  listPayments: () => api.get('/purchases/payments/list'),
+};
+
 export default api;

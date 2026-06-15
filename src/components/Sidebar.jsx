@@ -29,12 +29,9 @@ const navItems = [
     { path: '/variants', icon: Boxes, label: 'Product Variants' },
     { path: '/inventory', icon: BarChart3, label: 'Inventory Master' },
   ]},
-  { section: 'Sales', icon: ShoppingCart, items: [
-    { path: '/sales/quotations', icon: FileText, label: 'Quotations' },
-    { path: '/sales/orders', icon: ShoppingCart, label: 'Sales Orders' },
-    { path: '/sales/invoices', icon: Receipt, label: 'Invoices' },
-    { path: '/sales/returns', icon: Receipt, label: 'Returns' },
-    { path: '/sales/credit-notes', icon: FileText, label: 'Credit Notes' },
+  { section: 'CRM & Vendors', icon: Users, items: [
+    { path: '/customers', icon: UserCircle, label: 'Customers' },
+    { path: '/vendors', icon: Truck, label: 'Vendors' },
   ]},
   { section: 'Purchases', icon: Receipt, items: [
     { path: '/purchases/requests', icon: FileText, label: 'Purchase Requests' },
@@ -44,9 +41,13 @@ const navItems = [
     { path: '/purchases/returns', icon: Receipt, label: 'Vendor Returns' },
     { path: '/purchases/payments', icon: Banknote, label: 'Vendor Payments' },
   ]},
-  { section: 'CRM & Vendors', icon: Users, items: [
-    { path: '/customers', icon: UserCircle, label: 'Customers' },
-    { path: '/vendors', icon: Truck, label: 'Vendors' },
+  { section: 'Sales', icon: ShoppingCart, items: [
+    { path: '/sales/quotations', icon: FileText, label: 'Quotations' },
+    { path: '/sales/orders', icon: ShoppingCart, label: 'Sales Orders' },
+    { path: '/sales/invoices', icon: Receipt, label: 'Invoices' },
+    { path: '/sales/payments', icon: Banknote, label: 'Customer Payments' },
+    { path: '/sales/returns', icon: Receipt, label: 'Returns' },
+    { path: '/sales/credit-notes', icon: FileText, label: 'Credit Notes' },
   ]},
   { section: 'Stock Movements', icon: Truck, items: [
     { path: '/inventory/transfer', icon: Truck, label: 'Stock Transfer' },

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Search, Plus, ChevronLeft, ChevronRight, Download, Upload } from 'lucide-react';
 
-export default function DataTable({ title, columns, data, total, page, pageSize, totalPages, onPageChange, onSearch, onAdd, addLabel, loading, actions }) {
+export default function DataTable({ title, columns, data, total, page, pageSize, totalPages, onPageChange, onSearch, onAdd, addLabel, loading, actions, filters }) {
   const [search, setSearch] = useState('');
 
   const handleSearch = (e) => {
@@ -17,6 +17,7 @@ export default function DataTable({ title, columns, data, total, page, pageSize,
           <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{total || 0} total records</span>
         </div>
         <div className="table-actions">
+          {filters && <div className="table-filters">{filters}</div>}
           <div className="header-search" style={{ minWidth: 220 }}>
             <Search size={14} style={{ color: 'var(--text-muted)' }} />
             <input type="text" placeholder="Search..." value={search} onChange={handleSearch} autoComplete="off" data-lpignore="true" data-1p-ignore="true" />

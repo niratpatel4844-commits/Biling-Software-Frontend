@@ -1,12 +1,20 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Save, Plus, Trash2, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { purchasesAPI, vendorsAPI, companiesAPI, branchesAPI, warehousesAPI, productsAPI, variantsAPI, unitsAPI } from '../services/api';
 
 export default function AddPurchasePage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const defaultType = searchParams.get('type') === 'request' ? 'purchase_request' : 
+                      searchParams.get('type') === 'order' ? 'purchase_order' : 
+                      searchParams.get('type') === 'receipt' ? 'goods_receipt' : 
+                      searchParams.get('type') === 'return' ? 'vendor_return' : 'purchase_bill';
+  
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
+    document_type: defaultType,
     po_number: 'AUTO-GENERATE',
     purchase_date: new Date().toISOString().split('T')[0],
     vendor_id: '',
@@ -14,12 +22,47 @@ export default function AddPurchasePage() {
     branch_id: '',
     warehouse_id: '',
     payment_status: 'unpaid',
+    priority: 'Medium',
     notes: '',
   });
 
   const [items, setItems] = useState([
     { id: 1, product_id: '', variant_id: '', quantity: 1, unit_id: '', cost_price: 0, discount_amount: 0, gst_percent: 18 }
   ]);
+
+  const [vendors, setVendors] = useState([]);
+  const [companies, setCompanies] = useState([]);
+  const [branches, setBranches] = useState([]);
+  const [warehouses, setWarehouses] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [variants, setVariants] = useState([]);
+  const [units, setUnits] = useState([]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [v, c, b, w, p, vr, u] = await Promise.all([
+          vendorsAPI.list({page_size: 100}).catch(() => ({ data: { items: [] } })),
+          companiesAPI.list().catch(() => ({ data: { items: [] } })),
+          branchesAPI.list().catch(() => ({ data: { items: [] } })),
+          warehousesAPI.list().catch(() => ({ data: { items: [] } })),
+          productsAPI.list({page_size: 1000}).catch(() => ({ data: { items: [] } })),
+          variantsAPI.list().catch(() => ({ data: { items: [] } })),
+          unitsAPI.list().catch(() => ({ data: { items: [] } })),
+        ]);
+        setVendors(v.data.items || v.data || []);
+        setCompanies(c.data.items || c.data || []);
+        setBranches(b.data.items || b.data || []);
+        setWarehouses(w.data.items || w.data || []);
+        setProducts(p.data.items || p.data || []);
+        setVariants(vr.data.items || vr.data || []);
+        setUnits(u.data.items || u.data || []);
+      } catch (err) {
+        console.error("Error loading dependencies", err);
+      }
+    };
+    loadData();
+  }, []);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -58,12 +101,44 @@ export default function AddPurchasePage() {
   const totals = calculateTotals();
 
   const handleSave = async () => {
+    if (!form.vendor_id) return toast.error('Please select a vendor');
+    if (items.length === 0) return toast.error('Please add at least one line item');
+    if (items.some(i => !i.product_id)) return toast.error('Please select a product for all line items');
+    
     setLoading(true);
-    setTimeout(() => {
-      toast.success('Purchase created successfully! Inventory increased.');
+    try {
+      const payload = {
+        ...form,
+        vendor_id: Number(form.vendor_id),
+        company_id: form.company_id ? Number(form.company_id) : null,
+        branch_id: form.branch_id ? Number(form.branch_id) : null,
+        warehouse_id: form.warehouse_id ? Number(form.warehouse_id) : null,
+        items: items.map(i => ({
+          ...i,
+          product_id: Number(i.product_id),
+          variant_id: i.variant_id ? Number(i.variant_id) : null,
+          unit_id: i.unit_id ? Number(i.unit_id) : null,
+          quantity: Number(i.quantity),
+          unit_price: Number(i.cost_price),
+        }))
+      };
+      
+      await purchasesAPI.create(payload);
+      toast.success('Saved successfully!');
+      
+      const routeMap = {
+        'purchase_request': '/purchases/requests',
+        'purchase_order': '/purchases/orders',
+        'goods_receipt': '/purchases/receipts',
+        'vendor_return': '/purchases/returns',
+        'purchase_bill': '/purchases/bills',
+      };
+      navigate(routeMap[form.document_type] || '/purchases/bills');
+    } catch(err) {
+      toast.error('Error saving');
+    } finally {
       setLoading(false);
-      navigate('/purchases/bills');
-    }, 800);
+    }
   };
 
   return (
@@ -71,48 +146,51 @@ export default function AddPurchasePage() {
       <div className="page-header" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
         <button className="btn btn-secondary btn-icon" onClick={() => navigate(-1)}><ArrowLeft size={18} /></button>
         <div>
-          <div className="breadcrumb">Home / Operations / Purchases / Add Purchase</div>
-          <h1 className="page-title">Add Purchase Bill</h1>
+          <div className="breadcrumb">Home / Operations / Purchases / Add Document</div>
+          <h1 className="page-title">Add {form.document_type.replace('_', ' ')}</h1>
         </div>
       </div>
 
       <div className="card" style={{ padding: 24, marginBottom: 24 }}>
-        <h3 style={{ marginBottom: 16, borderBottom: '1px solid var(--border)', paddingBottom: 8 }}>Purchase Details</h3>
+        <h3 style={{ marginBottom: 16, borderBottom: '1px solid var(--border)', paddingBottom: 8 }}>Details</h3>
         <div className="grid-2">
           <div className="form-group">
-            <label className="form-label">Purchase Number</label>
+            <label className="form-label">Document Type</label>
+            <select className="form-select" name="document_type" value={form.document_type} onChange={handleChange}>
+              <option value="purchase_request">Purchase Request</option>
+              <option value="purchase_order">Purchase Order</option>
+              <option value="goods_receipt">Goods Receipt</option>
+              <option value="purchase_bill">Purchase Bill</option>
+              <option value="vendor_return">Vendor Return</option>
+            </select>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Document Number</label>
             <input className="form-input" disabled value={form.po_number} />
           </div>
           <div className="form-group">
-            <label className="form-label">Purchase Date</label>
+            <label className="form-label">Date</label>
             <input type="date" className="form-input" name="purchase_date" value={form.purchase_date} onChange={handleChange} />
           </div>
           <div className="form-group">
             <label className="form-label">Vendor</label>
             <select className="form-select" name="vendor_id" value={form.vendor_id} onChange={handleChange}>
               <option value="">Select Vendor</option>
-              <option value="1">Global Suppliers Ltd</option>
+              {vendors.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
             </select>
           </div>
           <div className="form-group">
             <label className="form-label">Company</label>
             <select className="form-select" name="company_id" value={form.company_id} onChange={handleChange}>
               <option value="">Select Company</option>
-              <option value="1">Main Company</option>
-            </select>
-          </div>
-          <div className="form-group">
-            <label className="form-label">Branch</label>
-            <select className="form-select" name="branch_id" value={form.branch_id} onChange={handleChange}>
-              <option value="">Select Branch</option>
-              <option value="1">HQ Branch</option>
+              {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
           <div className="form-group">
             <label className="form-label">Warehouse</label>
             <select className="form-select" name="warehouse_id" value={form.warehouse_id} onChange={handleChange}>
               <option value="">Select Warehouse</option>
-              <option value="1">Main Warehouse</option>
+              {warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
             </select>
           </div>
         </div>
@@ -126,10 +204,10 @@ export default function AddPurchasePage() {
               <tr>
                 <th>Product</th>
                 <th>Variant</th>
-                <th>Quantity</th>
+                <th>Qty</th>
                 <th>Unit</th>
-                <th>Cost Price (₹)</th>
-                <th>Discount (₹)</th>
+                <th>Price (₹)</th>
+                <th>Disc (₹)</th>
                 <th>GST (%)</th>
                 <th>Total (₹)</th>
                 <th style={{ width: 50 }}></th>
@@ -146,14 +224,14 @@ export default function AddPurchasePage() {
                   <tr key={item.id}>
                     <td>
                       <select className="form-select" value={item.product_id} onChange={(e) => handleItemChange(index, 'product_id', e.target.value)}>
-                        <option value="">Select Product...</option>
-                        <option value="1">Raw Material X</option>
+                        <option value="">Select...</option>
+                        {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                       </select>
                     </td>
                     <td>
                       <select className="form-select" value={item.variant_id} onChange={(e) => handleItemChange(index, 'variant_id', e.target.value)}>
-                        <option value="">Select Variant...</option>
-                        <option value="1">Grade A</option>
+                        <option value="">Variant...</option>
+                        {variants.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
                       </select>
                     </td>
                     <td>
@@ -162,8 +240,7 @@ export default function AddPurchasePage() {
                     <td>
                       <select className="form-select" value={item.unit_id} onChange={(e) => handleItemChange(index, 'unit_id', e.target.value)}>
                         <option value="">Unit</option>
-                        <option value="1">KG</option>
-                        <option value="2">TON</option>
+                        {units.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
                       </select>
                     </td>
                     <td>
@@ -233,7 +310,7 @@ export default function AddPurchasePage() {
           
           <div style={{ marginTop: 32, display: 'flex', gap: 12 }}>
             <button className="btn btn-primary" onClick={handleSave} disabled={loading} style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, height: 48, fontSize: 16 }}>
-              <Save size={20} /> {loading ? 'Saving...' : 'Save Purchase Bill'}
+              <Save size={20} /> {loading ? 'Saving...' : 'Save Document'}
             </button>
           </div>
         </div>

@@ -4,7 +4,7 @@ import Modal from '../components/Modal';
 import { Edit, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-export default function CrudPage({ title, subtitle, breadcrumb, apiService, columns, formFields, addLabel }) {
+export default function CrudPage({ title, subtitle, breadcrumb, apiService, columns, formFields, addLabel, initialOpen = false, initialForm = null }) {
   const [data, setData] = useState({ items: [], total: 0, page: 1, page_size: 20, total_pages: 1 });
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -12,6 +12,14 @@ export default function CrudPage({ title, subtitle, breadcrumb, apiService, colu
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({});
   const [searchTimer, setSearchTimer] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('');
+
+  useEffect(() => {
+    if (initialOpen && initialForm) {
+      setForm(initialForm);
+      setShowModal(true);
+    }
+  }, [initialOpen, initialForm]);
 
   const defaultForm = () => {
     const f = {};
@@ -19,10 +27,10 @@ export default function CrudPage({ title, subtitle, breadcrumb, apiService, colu
     return f;
   };
 
-  const fetchData = useCallback(async (page = 1, search = '') => {
+  const fetchData = useCallback(async (page = 1, search = '', status = statusFilter) => {
     setLoading(true);
     try {
-      const res = await apiService.list({ page, page_size: 20, search });
+      const res = await apiService.list({ page, page_size: 20, search, status });
       if (Array.isArray(res.data)) {
         let items = res.data;
         if (search) {
@@ -47,7 +55,13 @@ export default function CrudPage({ title, subtitle, breadcrumb, apiService, colu
 
   const handleSearch = (val) => {
     if (searchTimer) clearTimeout(searchTimer);
-    setSearchTimer(setTimeout(() => fetchData(1, val), 400));
+    setSearchTimer(setTimeout(() => fetchData(1, val, statusFilter), 400));
+  };
+
+  const handleStatusFilter = (e) => {
+    const val = e.target.value;
+    setStatusFilter(val);
+    fetchData(1, '', val);
   };
 
   const openCreate = () => { setEditing(null); setForm(defaultForm()); setShowModal(true); };
@@ -104,8 +118,15 @@ export default function CrudPage({ title, subtitle, breadcrumb, apiService, colu
 
       <DataTable title={title} columns={columns} data={data.items} total={data.total}
         page={data.page} pageSize={data.page_size} totalPages={data.total_pages}
-        loading={loading} onPageChange={(p) => fetchData(p)} onSearch={handleSearch}
+        loading={loading} onPageChange={(p) => fetchData(p, '', statusFilter)} onSearch={handleSearch}
         onAdd={openCreate} addLabel={addLabel || 'Add New'}
+        filters={
+          <select className="form-select" style={{ minWidth: 150 }} value={statusFilter} onChange={handleStatusFilter}>
+            <option value="">All Statuses</option>
+            <option value="true">Active</option>
+            <option value="false">Inactive</option>
+          </select>
+        }
         actions={(row) => (
           <div style={{ display: 'flex', gap: 4 }}>
             <button className="btn btn-secondary btn-sm btn-icon" onClick={() => openEdit(row)}><Edit size={14} /></button>
@@ -139,14 +160,25 @@ export default function CrudPage({ title, subtitle, breadcrumb, apiService, colu
                     if (val === 'true') val = true;
                     else if (val === 'false') val = false;
                     else if (ff.valueType === 'number' && val !== '') val = Number(val);
-                    setForm({ ...form, [ff.key]: val });
+                    let newForm = { ...form, [ff.key]: val };
+                    if (ff.onChange) {
+                      newForm = ff.onChange(val, newForm) || newForm;
+                    }
+                    setForm(newForm);
                   }}>
                     <option value="">Select...</option>
                     {(typeof ff.options === 'function' ? ff.options(form) : ff.options)?.map(o => <option key={String(o.value)} value={String(o.value)}>{o.label}</option>)}
                   </select>
                 ) : (
                   <input className="form-input" type={ff.type || 'text'} value={form[ff.key] || ''}
-                    onChange={(e) => setForm({ ...form, [ff.key]: ff.type === 'number' ? (e.target.value ? Number(e.target.value) : '') : e.target.value })}
+                    onChange={(e) => {
+                      let val = ff.type === 'number' ? (e.target.value ? Number(e.target.value) : '') : e.target.value;
+                      let newForm = { ...form, [ff.key]: val };
+                      if (ff.onChange) {
+                        newForm = ff.onChange(val, newForm) || newForm;
+                      }
+                      setForm(newForm);
+                    }}
                     placeholder={ff.placeholder || ''} />
                 )}
               </div>

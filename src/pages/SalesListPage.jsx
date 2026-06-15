@@ -4,30 +4,37 @@ import DataTable from '../components/DataTable';
 import { FileText, Plus, Download, Printer, Mail } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+import { salesAPI } from '../services/api';
+
 export default function SalesListPage() {
   const navigate = useNavigate();
-  // We don't have a fully fledged sales API service yet in frontend, so we will mock the data fetch
-  const [data, setData] = useState({ items: [], total: 0, page: 1, page_size: 20, total_pages: 1 });
+  const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchData = useCallback(async (page = 1, search = '') => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
-    // Mocking API fetch since the full API isn't built out in services/api.js yet
-    setTimeout(() => {
-      setData({ items: [], total: 0, page: 1, page_size: 20, total_pages: 1 });
+    try {
+      const res = await salesAPI.list('invoice');
+      setData(res.data || []);
+    } catch (err) {
+      toast.error('Failed to load invoices');
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const columns = [
     { key: 'invoice_number', label: 'Invoice No.' },
-    { key: 'sale_date', label: 'Date' },
-    { key: 'customer_name', label: 'Customer', render: (val) => <span style={{ fontWeight: 600 }}>{val}</span> },
-    { key: 'total_amount', label: 'Total', render: (val) => `₹${Number(val||0).toLocaleString()}` },
-    { key: 'payment_status', label: 'Payment', render: (val) => <span className={`badge-status ${val === 'paid' ? 'badge-active' : 'badge-inactive'}`}>{val || 'Unpaid'}</span> },
-    { key: 'status', label: 'Status', render: (val) => <span className="badge-status badge-info">{val || 'Completed'}</span> },
+    { key: 'customer_id', label: 'Customer ID', render: (val) => <span style={{ fontWeight: 600 }}>{val}</span> },
+    { key: 'total_amount', label: 'Invoice Total', render: (val) => `₹${Number(val||0).toLocaleString()}` },
+    { key: 'paid_amount', label: 'Paid Amount', render: (val) => <span style={{ color: 'var(--success)', fontWeight: 600 }}>₹{Number(val||0).toLocaleString()}</span> },
+    { key: 'due_amount', label: 'Due Amount', render: (val) => <span style={{ color: 'var(--danger)', fontWeight: 600 }}>₹{Number(val||0).toLocaleString()}</span> },
+    { key: 'payment_status', label: 'Payment Status', render: (val) => {
+      let colorClass = val === 'paid' ? 'badge-active' : val === 'partial' ? 'badge-warning' : 'badge-inactive';
+      return <span className={`badge-status ${colorClass}`} style={{ textTransform: 'capitalize' }}>{val || 'Unpaid'}</span>;
+    }},
   ];
 
   return (
@@ -46,20 +53,14 @@ export default function SalesListPage() {
       <DataTable 
         title="Sales Invoices" 
         columns={columns} 
-        data={data.items} 
-        total={data.total}
-        page={data.page} 
-        pageSize={data.page_size} 
-        totalPages={data.total_pages}
+        data={data} 
         loading={loading} 
-        onPageChange={(p) => fetchData(p)} 
-        onSearch={(s) => fetchData(1, s)}
         actions={(row) => (
           <div style={{ display: 'flex', gap: 4 }}>
-            <button className="btn btn-secondary btn-sm btn-icon" title="View PDF"><FileText size={14} /></button>
-            <button className="btn btn-secondary btn-sm btn-icon" title="Print"><Printer size={14} /></button>
-            <button className="btn btn-secondary btn-sm btn-icon" title="Email"><Mail size={14} /></button>
-            <button className="btn btn-secondary btn-sm btn-icon" title="Export Excel"><Download size={14} /></button>
+            <button className="btn btn-secondary btn-sm" onClick={() => navigate(`/sales/view/${row.id}`)} title="View Document">View</button>
+            {row.payment_status !== 'paid' && (
+               <button className="btn btn-primary btn-sm" onClick={() => navigate('/sales/payments', { state: { autoOpen: true, customerId: row.customer_id, invoiceId: row.id, amount: row.due_amount || row.total_amount - (row.paid_amount || 0) } })} title="Record Payment">Pay Now</button>
+            )}
           </div>
         )}
       />
