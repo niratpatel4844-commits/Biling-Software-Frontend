@@ -65,7 +65,12 @@ const navItems = [
     { path: '/reports/inventory', icon: BarChart3, label: 'Inventory Reports' },
   ]},
   { section: 'Finance', icon: Banknote, items: [
-    { path: '/finance', icon: Banknote, label: 'Accounting' },
+    { path: '/finance/accounts', icon: Layers, label: 'Chart of Accounts' },
+    { path: '/finance/journal', icon: FileText, label: 'Journal Entries' },
+    { path: '/finance/ledger', icon: ClipboardList, label: 'General Ledger' },
+    { path: '/finance/trial-balance', icon: Calculator, label: 'Trial Balance' },
+    { path: '/finance/pnl', icon: BarChart3, label: 'Profit & Loss' },
+    { path: '/finance/balance-sheet', icon: Building2, label: 'Balance Sheet' },
   ]},
   { section: 'System', icon: Settings, items: [
     { path: '/notifications', icon: Bell, label: 'Notifications' },

@@ -42,19 +42,26 @@ export default function DashboardPage() {
 
   if (loading) return <div className="loading-spinner"><div className="spinner"></div></div>;
 
-  const statCards = [
-    { label: 'Total Companies', value: stats?.total_companies || 0, icon: Building2, color: 'purple', change: '+12%', up: true },
-    { label: 'Total Warehouses', value: stats?.total_warehouses || 0, icon: Warehouse, color: 'blue', change: '+5%', up: true },
-    { label: 'Total Branches', value: stats?.total_branches || 0, icon: GitBranch, color: 'green', change: '+8%', up: true },
-    { label: 'Total Franchises', value: stats?.total_franchises || 0, icon: Store, color: 'yellow', change: '+15%', up: true },
-    { label: 'Total Users', value: stats?.total_users || 0, icon: Users, color: 'purple', change: '+3%', up: true },
-    { label: 'Total Products', value: stats?.total_products || 0, icon: Package, color: 'blue', change: '+10%', up: true },
-    { label: 'Inventory Value', value: `₹${(stats?.total_inventory_value || 0).toLocaleString()}`, icon: DollarSign, color: 'green', change: '+7%', up: true },
-    { label: "Today's Sales", value: `₹${(stats?.today_sales || 0).toLocaleString()}`, icon: ShoppingCart, color: 'yellow', change: '+22%', up: true },
+  // Grouped stats for better layout
+  const overviewStats = [
+    { label: "Today's Sales", value: `₹${(stats?.today_sales || 0).toLocaleString()}`, icon: ShoppingCart, color: 'blue', change: '+22%', up: true },
     { label: 'Monthly Sales', value: `₹${(stats?.monthly_sales || 0).toLocaleString()}`, icon: TrendingUp, color: 'purple', change: '+18%', up: true },
+    { label: 'Inventory Value', value: `₹${(stats?.total_inventory_value || 0).toLocaleString()}`, icon: DollarSign, color: 'green', change: '+7%', up: true },
     { label: 'Pending Orders', value: stats?.pending_orders || 0, icon: Clock, color: 'yellow', change: '-5%', up: false },
-    { label: 'Low Stock', value: stats?.low_stock_products || 0, icon: AlertTriangle, color: 'red', change: '+2', up: false },
+  ];
+
+  const inventoryStats = [
+    { label: 'Total Products', value: stats?.total_products || 0, icon: Package, color: 'blue', change: '+10%', up: true },
+    { label: 'Low Stock Alerts', value: stats?.low_stock_products || 0, icon: AlertTriangle, color: 'yellow', change: '+2', up: false },
     { label: 'Out of Stock', value: stats?.out_of_stock_products || 0, icon: XCircle, color: 'red', change: '-1', up: true },
+  ];
+
+  const orgStats = [
+    { label: 'Companies', value: stats?.total_companies || 0, icon: Building2, color: 'purple' },
+    { label: 'Branches', value: stats?.total_branches || 0, icon: GitBranch, color: 'green' },
+    { label: 'Franchises', value: stats?.total_franchises || 0, icon: Store, color: 'yellow' },
+    { label: 'Warehouses', value: stats?.total_warehouses || 0, icon: Warehouse, color: 'blue' },
+    { label: 'System Users', value: stats?.total_users || 0, icon: Users, color: 'purple' },
   ];
 
   // Generate mock data for charts if no real data
@@ -79,111 +86,165 @@ export default function DashboardPage() {
     { name: 'Other', value: 8 },
   ];
 
+  // Helper component for stat cards
+  const StatCard = ({ card, index }) => (
+    <div className={`stat-card ${card.color}`} style={{ animationDelay: `${index * 0.05}s` }}>
+      <div className={`stat-icon ${card.color}`}>
+        <card.icon size={24} />
+      </div>
+      <div className="stat-content">
+        <div className="stat-label">{card.label}</div>
+        <div className="stat-value">{card.value}</div>
+        {card.change && (
+          <div className={`stat-change ${card.up ? 'up' : 'down'}`}>
+            {card.up ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+            {card.change}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <div className="animate-in">
-      <div className="page-header">
+      <div className="page-header" style={{ marginBottom: '24px' }}>
         <div>
-          <div className="breadcrumb">Home / Dashboard</div>
-          <h1 className="page-title">Dashboard</h1>
-          <p className="page-subtitle">Welcome back! Here's your business overview.</p>
+          <h1 className="page-title" style={{ fontSize: '1.75rem', fontWeight: 700 }}>Overview</h1>
+          <p className="page-subtitle">Welcome back! Here's what's happening today.</p>
         </div>
       </div>
 
-      <div className="stats-grid">
-        {statCards.map((card, i) => (
-          <div key={i} className={`stat-card ${card.color}`} style={{ animationDelay: `${i * 0.05}s` }}>
-            <div className={`stat-icon ${card.color}`}>
-              <card.icon size={24} />
-            </div>
-            <div className="stat-content">
-              <div className="stat-label">{card.label}</div>
-              <div className="stat-value">{card.value}</div>
-              <div className={`stat-change ${card.up ? 'up' : 'down'}`}>
-                {card.up ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
-                {card.change}
-              </div>
-            </div>
-          </div>
-        ))}
+      {/* Main Revenue Overview - 4 columns */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '32px', marginBottom: '40px' }}>
+        {overviewStats.map((card, i) => <StatCard key={`overview-${i}`} card={card} index={i} />)}
       </div>
 
-      <div className="charts-grid">
-        <div className="chart-card">
+      {/* Charts Section - 2 Columns */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))', gap: '32px', marginBottom: '40px' }}>
+        {/* Main Chart */}
+        <div className="chart-card" style={{ height: '450px', display: 'flex', flexDirection: 'column' }}>
           <div className="chart-card-title">Sales Trend (30 Days)</div>
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={chartSalesData}>
-              <defs>
-                <linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.4} />
-                  <stop offset="95%" stopColor="#4F46E5" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid stroke="var(--border)" strokeDasharray="4 4" vertical={false} />
-              <XAxis dataKey="date" tick={{ fill: 'var(--text-secondary)', fontSize: 12, fontWeight: 500 }} tickFormatter={(v) => v.slice(5)} tickLine={false} axisLine={false} dy={10} />
-              <YAxis tick={{ fill: 'var(--text-secondary)', fontSize: 12, fontWeight: 500 }} tickFormatter={(v) => `₹${(v/1000).toFixed(0)}k`} tickLine={false} axisLine={false} dx={-10} />
-              <Tooltip 
-                contentStyle={{ background: 'var(--bg-card)', border: 'none', borderRadius: '12px', boxShadow: 'var(--shadow-lg)', color: 'var(--text-primary)', fontSize: '13px', padding: '12px 16px', fontWeight: 600 }}
-                itemStyle={{ color: 'var(--text-primary)' }}
-                formatter={(v) => [`₹${v.toLocaleString()}`, 'Sales']} 
-                cursor={{ stroke: 'var(--border)', strokeWidth: 1, strokeDasharray: '4 4' }}
-              />
-              <Area type="monotone" dataKey="amount" stroke="#4F46E5" strokeWidth={3} fill="url(#salesGrad)" activeDot={{ r: 6, fill: '#4F46E5', stroke: '#fff', strokeWidth: 2 }} />
-            </AreaChart>
-          </ResponsiveContainer>
+          <div style={{ flex: 1, minHeight: 0 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartSalesData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#4F46E5" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid stroke="var(--border)" strokeDasharray="4 4" vertical={false} />
+                <XAxis dataKey="date" tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} tickFormatter={(v) => v.slice(5)} tickLine={false} axisLine={false} dy={10} />
+                <YAxis tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} tickFormatter={(v) => `₹${(v/1000).toFixed(0)}k`} tickLine={false} axisLine={false} dx={-10} />
+                <Tooltip 
+                  contentStyle={{ background: 'var(--bg-card)', border: 'none', borderRadius: '12px', boxShadow: 'var(--shadow-lg)' }}
+                  formatter={(v) => [`₹${v.toLocaleString()}`, 'Sales']} 
+                />
+                <Area type="monotone" dataKey="amount" stroke="#4F46E5" strokeWidth={3} fill="url(#salesGrad)" activeDot={{ r: 6, strokeWidth: 0 }} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
-        <div className="chart-card">
+        {/* Branch Performance */}
+        <div className="chart-card" style={{ height: '450px', display: 'flex', flexDirection: 'column' }}>
           <div className="chart-card-title">Branch Performance</div>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={branchPerf} barSize={32}>
-              <CartesianGrid stroke="var(--border)" strokeDasharray="4 4" vertical={false} />
-              <XAxis dataKey="name" tick={{ fill: 'var(--text-secondary)', fontSize: 12, fontWeight: 500 }} tickLine={false} axisLine={false} dy={10} />
-              <YAxis tick={{ fill: 'var(--text-secondary)', fontSize: 12, fontWeight: 500 }} tickFormatter={(v) => `₹${(v/1000).toFixed(0)}k`} tickLine={false} axisLine={false} dx={-10} />
-              <Tooltip 
-                contentStyle={{ background: 'var(--bg-card)', border: 'none', borderRadius: '12px', boxShadow: 'var(--shadow-lg)', color: 'var(--text-primary)', fontSize: '13px', padding: '12px 16px', fontWeight: 600 }}
-                cursor={{ fill: 'var(--bg-card-hover)', opacity: 0.5 }}
-              />
-              <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '13px', fontWeight: 500 }} iconType="circle" />
-              <Bar dataKey="sales" fill="#4F46E5" radius={[6, 6, 0, 0]} name="Sales" />
-              <Bar dataKey="profit" fill="#10B981" radius={[6, 6, 0, 0]} name="Profit" />
-            </BarChart>
-          </ResponsiveContainer>
+          <div style={{ flex: 1, minHeight: 0 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={branchPerf} barSize={32} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <CartesianGrid stroke="var(--border)" strokeDasharray="4 4" vertical={false} />
+                <XAxis dataKey="name" tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} tickLine={false} axisLine={false} dy={10} />
+                <YAxis tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} tickFormatter={(v) => `₹${(v/1000).toFixed(0)}k`} tickLine={false} axisLine={false} dx={-10} />
+                <Tooltip contentStyle={{ background: 'var(--bg-card)', border: 'none', borderRadius: '12px', boxShadow: 'var(--shadow-lg)' }} cursor={{ fill: 'var(--bg-card-hover)', opacity: 0.5 }} />
+                <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '14px' }} iconType="circle" />
+                <Bar dataKey="sales" fill="#4F46E5" radius={[6, 6, 0, 0]} name="Sales" />
+                <Bar dataKey="profit" fill="#10B981" radius={[6, 6, 0, 0]} name="Profit" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
+      </div>
 
-        <div className="chart-card">
-          <div className="chart-card-title">Inventory Distribution</div>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie data={inventoryDist} cx="50%" cy="50%" innerRadius={70} outerRadius={110}
-                paddingAngle={5} dataKey="value" stroke="none" 
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                labelLine={false} style={{ fontSize: '12px', fontWeight: 600, fill: 'var(--text-primary)' }}>
-                {inventoryDist.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-              </Pie>
-              <Tooltip contentStyle={{ background: 'var(--bg-card)', border: 'none', borderRadius: '12px', boxShadow: 'var(--shadow-lg)', color: 'var(--text-primary)', fontSize: '13px', padding: '12px 16px', fontWeight: 600 }} />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="chart-card">
-          <div className="chart-card-title">Recent Activities</div>
-          <div style={{ maxHeight: 300, overflowY: 'auto' }}>
-            {activities.length === 0 ? (
-              <div className="empty-state"><p>No recent activities</p></div>
-            ) : (
-              activities.slice(0, 10).map((a, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid var(--border)' }}>
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: COLORS[i % COLORS.length], flexShrink: 0 }}></div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 13, fontWeight: 500 }}>{a.action} - {a.module}</div>
-                    <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{a.details}</div>
+      {/* Bottom Information Grid - 3 Columns */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '32px', marginBottom: '32px' }}>
+        
+        {/* Inventory Alerts Section */}
+        <div className="card" style={{ padding: '28px', height: '100%' }}>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '20px', color: 'var(--text-primary)' }}>Inventory Alerts</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {inventoryStats.map((card, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: 'var(--bg-input)', borderRadius: 'var(--radius-md)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div className={`stat-icon ${card.color}`} style={{ width: '42px', height: '42px' }}>
+                    <card.icon size={20} />
                   </div>
-                  <div style={{ fontSize: 11, color: 'var(--text-muted)', flexShrink: 0 }}>{a.created_at?.slice(11, 16)}</div>
+                  <span style={{ fontWeight: 500, color: 'var(--text-primary)', fontSize: '1rem' }}>{card.label}</span>
                 </div>
-              ))
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontWeight: 700, fontSize: '1.25rem', color: 'var(--text-primary)' }}>{card.value}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Org Structure Grid */}
+        <div className="card" style={{ padding: '28px', height: '100%' }}>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '20px', color: 'var(--text-primary)' }}>Organization</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '16px' }}>
+            {orgStats.map((card, i) => (
+              <div key={i} style={{ padding: '16px', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', background: 'var(--bg-input)' }}>
+                <card.icon size={24} style={{ color: `var(--${card.color})`, marginBottom: '12px' }} />
+                <span style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>{card.value}</span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{card.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Recent Activities */}
+        <div className="chart-card" style={{ height: '100%', display: 'flex', flexDirection: 'column', minHeight: '400px' }}>
+          <div className="chart-card-title">Recent Activities</div>
+          <div style={{ flex: 1, overflowY: 'auto', paddingRight: '4px' }}>
+            {activities.length === 0 ? (
+              <div className="empty-state" style={{ padding: '40px' }}>
+                <Clock size={40} style={{ opacity: 0.2, marginBottom: '12px' }} />
+                <p style={{ fontSize: '1rem' }}>No recent activities</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {activities.slice(0, 10).map((a, i) => (
+                  <div key={i} style={{ 
+                    display: 'flex', 
+                    gap: 16, 
+                    padding: '16px 0', 
+                    borderBottom: i < 9 ? '1px solid var(--border)' : 'none',
+                    alignItems: 'flex-start'
+                  }}>
+                    <div style={{ 
+                      width: 10, height: 10, borderRadius: '50%', 
+                      background: COLORS[i % COLORS.length], 
+                      flexShrink: 0,
+                      marginTop: '6px'
+                    }}></div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                        {a.action}
+                      </div>
+                      <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '4px', lineHeight: 1.4 }}>
+                        {a.details}
+                      </div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '6px' }}>
+                        {a.module} • {new Date(a.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         </div>
+
       </div>
     </div>
   );

@@ -37,6 +37,22 @@ import VendorReturnsPage from './pages/VendorReturnsPage';
 import AddPurchasePage from './pages/AddPurchasePage';
 import ViewPurchasePage from './pages/ViewPurchasePage';
 import StockMovementsPage from './pages/StockMovementsPage';
+import ReservedStockPage from './pages/ReservedStockPage';
+import StockHistoryPage from './pages/StockHistoryPage';
+import SalesReportsPage from './pages/SalesReportsPage';
+import PurchaseReportsPage from './pages/PurchaseReportsPage';
+import CustomerReportsPage from './pages/CustomerReportsPage';
+import VendorReportsPage from './pages/VendorReportsPage';
+import GstReportsPage from './pages/GstReportsPage';
+import InventoryReportsPage from './pages/InventoryReportsPage';
+import ChartOfAccountsPage from './pages/ChartOfAccountsPage';
+import JournalEntriesPage from './pages/JournalEntriesPage';
+import LedgerPage from './pages/LedgerPage';
+import TrialBalancePage from './pages/TrialBalancePage';
+import ProfitLossPage from './pages/ProfitLossPage';
+import BalanceSheetPage from './pages/BalanceSheetPage';
+import SettingsPage from './pages/SettingsPage';
+import NotificationsPage from './pages/NotificationsPage';
 import './index.css';
 
 function ProtectedRoute({ children }) {
@@ -94,20 +110,27 @@ function AppRoutes() {
         <Route path="inventory/transfer" element={<StockMovementsPage movementType="transfer" title="Stock Transfers" description="Move stock between warehouses" />} />
         <Route path="inventory/adjustment" element={<StockMovementsPage movementType="adjustment" title="Stock Adjustments" description="Manually add or remove stock" />} />
         <Route path="inventory/damaged" element={<StockMovementsPage movementType="damage" title="Damaged Stock" description="Report and manage damaged inventory" />} />
-        <Route path="inventory/reserved" element={<PlaceholderPage pageKey="inventory_reserved" title="Reserved Stock" />} />
-        <Route path="inventory/history" element={<PlaceholderPage pageKey="inventory_history" title="Stock History" />} />
+        <Route path="inventory/reserved" element={<ReservedStockPage />} />
+        <Route path="inventory/history" element={<StockHistoryPage />} />
 
         {/* Reports */}
-        <Route path="reports/sales" element={<PlaceholderPage pageKey="reports_sales" title="Sales Reports" />} />
-        <Route path="reports/purchases" element={<PlaceholderPage pageKey="reports_purchases" title="Purchase Reports" />} />
-        <Route path="reports/customers" element={<PlaceholderPage pageKey="reports_customers" title="Customer Reports" />} />
-        <Route path="reports/vendors" element={<PlaceholderPage pageKey="reports_vendors" title="Vendor Reports" />} />
-        <Route path="reports/gst" element={<PlaceholderPage pageKey="reports_gst" title="GST Reports" />} />
-        <Route path="reports/inventory" element={<PlaceholderPage pageKey="reports_inventory" title="Inventory Reports" />} />
+        <Route path="reports/sales" element={<SalesReportsPage />} />
+        <Route path="reports/purchases" element={<PurchaseReportsPage />} />
+        <Route path="reports/customers" element={<CustomerReportsPage />} />
+        <Route path="reports/vendors" element={<VendorReportsPage />} />
+        <Route path="reports/gst" element={<GstReportsPage />} />
+        <Route path="reports/inventory" element={<InventoryReportsPage />} />
 
-        <Route path="finance" element={<PlaceholderPage pageKey="finance" title="Accounting" />} />
-        <Route path="notifications" element={<PlaceholderPage pageKey="notifications" />} />
-        <Route path="settings" element={<PlaceholderPage pageKey="settings" />} />
+        {/* Finance */}
+        <Route path="finance/accounts" element={<ChartOfAccountsPage />} />
+        <Route path="finance/journal" element={<JournalEntriesPage />} />
+        <Route path="finance/ledger" element={<LedgerPage />} />
+        <Route path="finance/trial-balance" element={<TrialBalancePage />} />
+        <Route path="finance/pnl" element={<ProfitLossPage />} />
+        <Route path="finance/balance-sheet" element={<BalanceSheetPage />} />
+
+        <Route path="notifications" element={<NotificationsPage />} />
+        <Route path="settings" element={<SettingsPage />} />
       </Route>
     </Routes>
   );

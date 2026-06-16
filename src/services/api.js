@@ -86,6 +86,8 @@ export const inventoryAPI = {
   addOpeningStock: (data) => api.post('/inventory/opening-stock', data),
   listMovements: (params) => api.get('/inventory/movements', { params }),
   createMovement: (data) => api.post('/inventory/movements', data),
+  getReserved: (params) => api.get('/inventory/reserved', { params }),
+  getHistory: (params) => api.get('/inventory/history', { params }),
 };
 
 export const salesAPI = {
@@ -107,6 +109,37 @@ export const purchasesAPI = {
   convert: (purchase_id, target_type) => api.post(`/purchases/${purchase_id}/convert/${target_type}`),
   makePayment: (data) => api.post('/purchases/payments', data),
   listPayments: () => api.get('/purchases/payments/list'),
+};
+
+export const reportsAPI = {
+  getSales: (params) => api.get('/reports/sales', { params }),
+  getPurchases: (params) => api.get('/reports/purchases', { params }),
+  getCustomers: (params) => api.get('/reports/customers', { params }),
+  getVendors: (params) => api.get('/reports/vendors', { params }),
+  getInventory: (params) => api.get('/reports/inventory', { params }),
+  getGst: (params) => api.get('/reports/gst', { params }),
+};
+
+export const financeAPI = {
+  getAccountGroups: () => api.get('/finance/accounts/groups'),
+  getAccounts: () => api.get('/finance/accounts'),
+  createJournalEntry: (data) => api.post('/finance/journal', data),
+  getJournalEntries: (params) => api.get('/finance/journal', { params }),
+  getLedger: (accountId) => api.get(`/finance/ledger/${accountId}`),
+  getTrialBalance: () => api.get('/finance/trial-balance'),
+  getPnl: () => api.get('/finance/pnl'),
+  getBalanceSheet: () => api.get('/finance/balance-sheet'),
+};
+export const settingsAPI = {
+  getSettings: () => api.get('/settings/'),
+  getSetting: (key) => api.get(`/settings/${key}`),
+  updateSetting: (key, data) => api.put(`/settings/${key}`, data),
+};
+
+export const notificationsAPI = {
+  list: (params) => api.get('/notifications/', { params }),
+  markAsRead: (id) => api.put(`/notifications/${id}/read`),
+  markAllAsRead: () => api.put('/notifications/read-all'),
 };
 
 export default api;
